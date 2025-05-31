@@ -1,24 +1,83 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const { OpenAI } = require('openai');
+require('dotenv').config();
+
 const app = express();
+const port = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-app.post('/', (req, res) => {
-  const alexaResponse = {
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+app.post('/', async (req, res) => {
+  const requestType = req.body.request.type;
+
+  if (requestType === 'LaunchRequest') {
+    return res.json({
+      version: "1.0",
+      response: {
+        outputSpeech: {
+          type: "PlainText",
+          text: "Hola, soy ChatGPT. ¿Sobre qué quieres que hablemos?"
+        },
+        shouldEndSession: false
+      }
+    });
+  }
+
+  if (requestType === 'IntentRequest') {
+    const intent = req.body.request.intent;
+    const userText = intent.slots?.mensaje?.value || "Dime algo";
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: userText }]
+      });
+
+      const reply = completion.choices[0].message.content;
+
+      return res.json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "PlainText",
+            text: reply
+          },
+          shouldEndSession: false
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      return res.json({
+        version: "1.0",
+        response: {
+          outputSpeech: {
+            type: "PlainText",
+            text: "Lo siento, ocurrió un error al consultar ChatGPT."
+          },
+          shouldEndSession: true
+        }
+      });
+    }
+  }
+
+  // Otro tipo de request
+  res.json({
     version: "1.0",
     response: {
       outputSpeech: {
         type: "PlainText",
-        text: "Hola, soy tu asistente ChatGPT. ¿Qué quieres saber?"
+        text: "No entendí tu solicitud."
       },
       shouldEndSession: false
     }
-  };
-
-  res.json(alexaResponse);
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(port, () => {
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
