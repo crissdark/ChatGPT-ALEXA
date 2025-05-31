@@ -12,6 +12,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// 👉 Ruta GET para probar en navegador
+app.get('/', (req, res) => {
+  res.send('¡Servidor funcionando correctamente! Alexa Skill Ready 🔥');
+});
+
 app.post('/', async (req, res) => {
   const requestType = req.body.request.type;
 
