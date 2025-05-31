@@ -1,41 +1,24 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
 const app = express();
-const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post('/', async (req, res) => {
-    const userInput = req.body.request.intent?.slots?.text?.value || 'Hola';
+app.post('/', (req, res) => {
+  const alexaResponse = {
+    version: "1.0",
+    response: {
+      outputSpeech: {
+        type: "PlainText",
+        text: "Hola, soy tu asistente ChatGPT. ¿Qué quieres saber?"
+      },
+      shouldEndSession: false
+    }
+  };
 
-    // Enviar a ChatGPT (reemplaza TU_API_KEY con la tuya)
-    const openaiResponse = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
-            model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: userInput }],
-        },
-        {
-            headers: {
-                Authorization: `Bearer TU_API_KEY`,
-                'Content-Type': 'application/json',
-            },
-        }
-    );
-
-    const reply = openaiResponse.data.choices[0].message.content;
-
-    res.json({
-        version: '1.0',
-        response: {
-            outputSpeech: {
-                type: 'PlainText',
-                text: reply,
-            },
-            shouldEndSession: false,
-        },
-    });
+  res.json(alexaResponse);
 });
 
-app.listen(port, () => console.log(`Servidor Alexa-GPT en ${port}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
