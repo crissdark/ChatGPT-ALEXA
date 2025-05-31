@@ -55,19 +55,19 @@ app.post('/', async (req, res) => {
           shouldEndSession: false
         }
       });
-    } catch (error) {
-      console.error(error);
-      return res.json({
-        version: "1.0",
-        response: {
-          outputSpeech: {
-            type: "PlainText",
-            text: "Lo siento, ocurrió un error al consultar ChatGPT."
-          },
-          shouldEndSession: true
-        }
-      });
+   } catch (error) {
+  console.error("Error en la llamada a OpenAI:", error.response?.data || error.message);
+  return res.json({
+    version: "1.0",
+    response: {
+      outputSpeech: {
+        type: "PlainText",
+        text: "Lo siento, ocurrió un error al consultar ChatGPT. " + (error.message || "")
+      },
+      shouldEndSession: true
     }
+  });
+}
   }
 
   // Otro tipo de request
